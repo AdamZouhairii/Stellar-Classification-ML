@@ -15,7 +15,7 @@ from yellowbrick.classifier import ClassPredictionError
 from yellowbrick.classifier import ROCAUC
 import xgboost as xgb
 
-data = 'star_classification.csv'
+data = r'C:\Users\Adame\Documents\GitHub\Stellar-Classification-ML\star_classification.csv'
 df = pd.read_csv(data)
 head = df.head()
 class_counts = df["class"].value_counts()
