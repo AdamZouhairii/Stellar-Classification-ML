@@ -52,6 +52,7 @@ sns.heatmap(corr, cmap="YlOrBr" , annot=True, linewidths=0.5, fmt= '.2f',ax=ax)
 ax.set_title('Correlation Matrix')
 
 st.title('Star Classification')
+st.text('galaxy')
 st.write('This app uses a dataset of stars to classify them into three classes: GALAXY, STAR, QSO')
 st.write('The dataset contains 10000 rows and 18 columns')
 st.code('df.head()', language='python')
