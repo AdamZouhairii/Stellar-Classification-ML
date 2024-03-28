@@ -124,7 +124,7 @@ svm_score_ = np.mean(score)
 
 
 # Compute confusion matrix
-cm = confusion_matrix(y_test, y_pred)
+cm = confusion_matrix(y_test, predicted)
 # Create annotated heatmap using Plotly
 svm_cm = ff.create_annotated_heatmap(z=cm, x=classes, y=classes, colorscale='YlOrBr', showscale=True)
 # Update layout
@@ -141,7 +141,7 @@ xgb_score = xgb_clf.score(X_test, y_test)
 xgb_score = np.mean(xgb_score)
 
 # Compute confusion matrix
-cm = confusion_matrix(y_test, y_pred)
+cm = confusion_matrix(y_test, y_pred_xgb)
 # Create annotated heatmap using Plotly
 xgb_cm = ff.create_annotated_heatmap(z=cm, x=classes, y=classes, colorscale='YlOrBr', showscale=True)
 # Update layout
