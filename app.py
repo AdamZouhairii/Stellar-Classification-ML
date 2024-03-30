@@ -17,6 +17,7 @@ import warnings
 import plotly.figure_factory as ff
 import plotly.graph_objs as go
 
+
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
@@ -147,9 +148,12 @@ xgb_cm = ff.create_annotated_heatmap(z=cm, x=classes, y=classes, colorscale='YlO
 # Update layout
 xgb_cm.update_layout(title='Confusion Matrix', xaxis=dict(title='Predicted label'), yaxis=dict(title='True label', autorange="reversed"))
 
+st.set_page_config(
+    page_title="stellar_classification_ML",
+    page_icon="🌌",
+)
 
 st.title('Star Classification')
-st.text('galaxy')
 st.write('This app uses a dataset of stars to classify them into three classes: GALAXY, STAR, QSO')
 st.write('The dataset contains 10000 rows and 18 columns')
 st.code('df.head()', language='python')
