@@ -200,31 +200,6 @@ st.write('The dataset has the following correlation matrix')
 st.write('The correlation matrix shows the correlation between the different features in the dataset')
 st.pyplot(f)
 st.write('The dataset has the following information')
-st.write("""
-         RangeIndex: 100000 entries, 0 to 99999
-Data columns (total 18 columns):
- #   Column       Non-Null Count   Dtype
----  ------       --------------   -----
- 0   obj_ID       100000 non-null  float64
- 1   alpha        100000 non-null  float64
- 2   delta        100000 non-null  float64
- 3   u            100000 non-null  float64
- 4   g            100000 non-null  float64
- 5   r            100000 non-null  float64
- 6   i            100000 non-null  float64
- 7   z            100000 non-null  float64
- 8   run_ID       100000 non-null  int64
- 9   rerun_ID     100000 non-null  int64
- 10  cam_col      100000 non-null  int64
- 11  field_ID     100000 non-null  int64
- 12  spec_obj_ID  100000 non-null  float64
- 13  class        100000 non-null  object
- 14  redshift     100000 non-null  float64
- 15  plate        100000 non-null  int64
- 16  MJD          100000 non-null  int64
- 17  fiber_ID     100000 non-null  int64
-dtypes: float64(10), int64(7), object(1)
-memory usage: 13.7+ MB""")
 st.write('The dataset has no missing values')
 st.dataframe(missing)
 st.write('The dataset has the following description')
@@ -241,19 +216,19 @@ st.write('The accuracy of the classifiers is as follows:')
 st.write('Random Forest Classifier', clf_score)
 st.plotly_chart(r_forest_cm)
 st.plotly_chart(fig_r_forest_cfr)
-st.write('RoC AUC for Random Forest Classifier')
+st.write('##### RoC AUC for Random Forest Classifier')
 st.image(roc_forest)
-st.write('Class Prediction Error for Random Forest Classifier')
+st.write('##### Class Prediction Error for Random Forest Classifier')
 st.image(cpe_forest)
 st.write('Support Vector Machine Classifier (SVM)', svm_score_)
 st.plotly_chart(svm_cm)
-st.write('RoC AUC for Support Vector Machine Classifier (SVM)')
+st.write('##### RoC AUC for Support Vector Machine Classifier (SVM)')
 st.image(roc_svm)
-st.write('Class Prediction Error for Support Vector Machine Classifier (SVM)')
+st.write('##### Class Prediction Error for Support Vector Machine Classifier (SVM)')
 st.image(cpe_svm)
 st.write('XGBoost Classifier (XGB)', xgb_score)
 st.plotly_chart(xgb_cm)
-st.write('RoC AUC for XGBoost Classifier (XGB)')
+st.write('##### RoC AUC for XGBoost Classifier (XGB)')
 st.image(roc_xgb)
-st.write('Class Prediction Error for XGBoost Classifier (XGB)')
+st.write('##### Class Prediction Error for XGBoost Classifier (XGB)')
 st.image(cpe_xgb)
