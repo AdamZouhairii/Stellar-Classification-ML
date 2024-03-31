@@ -11,7 +11,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn import svm
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
-from sklearn.metrics import roc_curve
+from sklearn.metrics import roc_curve,auc
 import xgboost as xgb
 import warnings
 import plotly.figure_factory as ff
@@ -24,6 +24,9 @@ warnings.filterwarnings("ignore", category=UserWarning)
 data = r'C:\Users\Adame\Documents\GitHub\Stellar-Classification-ML\star_classification.csv'
 df = pd.read_csv(data)
 head = df.head()
+info = df.info()
+describe = df.describe()
+missing = df.isnull().sum()
 class_counts = df["class"].value_counts()
 
 # Creating a new figure and axis
@@ -158,6 +161,18 @@ st.write('This app uses a dataset of stars to classify them into three classes: 
 st.write('The dataset contains 10000 rows and 18 columns')
 st.code('df.head()', language='python')
 st.dataframe(head)
+st.write('The dataset has the following class for the classification prediction:')
+st.write('GALAXY, STAR, QSO')
+st.pyplot(fig)
+st.write('The dataset has the following correlation matrix')
+st.write('The correlation matrix shows the correlation between the different features in the dataset')
+st.pyplot(f)
+st.write('The dataset has the following information')
+st.dataframe(info)
+st.write('The dataset has no missing values')
+st.dataframe(missing)
+st.write('The dataset has the following description')
+st.dataframe(describe)
 st.write('The dataset has been cleaned and outliers have been removed')
 st.write('15256 outliers have been removed')
 st.write('The dataset has been split into training and testing datasets')
