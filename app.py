@@ -1,5 +1,4 @@
 import streamlit as st
-import plotly.express as px
 import numpy as np
 import pandas as pd 
 import matplotlib.pyplot as plt
@@ -11,7 +10,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn import svm
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
-from sklearn.metrics import roc_curve, roc_auc_score
 import xgboost as xgb
 import warnings
 import plotly.figure_factory as ff
@@ -139,8 +137,8 @@ fig_r_forest_cfr = go.Figure()
 fig_r_forest_cfr.add_trace(table_trace)
 fig_r_forest_cfr.update_layout(title='Classification Report')
 #-----------------------------------------------------------------------------------------------#
-roc_forest = 'roc_forest.png'
-cpe_forest = 'cpe_forest.png'
+roc_forest = 'data/roc_forest.png'
+cpe_forest = 'data/cpe_forest.png'
 
 
 svm_clf = svm.SVC(kernel='rbf', C=1, random_state=0)
@@ -158,8 +156,27 @@ svm_cm = ff.create_annotated_heatmap(z=cm, x=classes, y=classes, colorscale='YlO
 svm_cm.update_layout(title='Confusion Matrix', xaxis=dict(title='Predicted label'), yaxis=dict(title='True label', autorange="reversed"))
 #-----------------------------------------------------------------------------------------------#
 
-roc_svm = 'roc_svm.png'
-cpe_svm = 'cpe_svm.png'
+# Generate classification report----------------------------------------------------------------#
+svm_cfr = classification_report(y_test, predicted, target_names=classes, output_dict=True)
+report_data = []
+for label, metrics in svm_cfr.items():
+    if label in classes:
+        report_data.append([label, metrics['precision'], metrics['recall'], metrics['f1-score'], metrics['support']])
+report_df = pd.DataFrame(report_data, columns=['Class', 'Precision', 'Recall', 'F1-Score', 'Support'])
+table_trace = go.Table(
+    header=dict(values=report_df.columns.tolist(), fill=dict(color='black'),  # Change header background color to blue
+                font=dict(color='white'),  # Change header font color to white
+                align='center'),
+    cells=dict(values=[report_df['Class'], report_df['Precision'], report_df['Recall'], report_df['F1-Score'], report_df['Support']],
+               fill=dict(color='black'),  # Change cell background color to black
+               font=dict(color='white'),  # Change cell font color to white
+               align='center'))
+fig_svm_cfr = go.Figure()
+fig_svm_cfr.add_trace(table_trace)
+fig_svm_cfr.update_layout(title='Classification Report')
+#-----------------------------------------------------------------------------------------------#
+roc_svm = 'data/roc_svm.png'
+cpe_svm = 'data/cpe_svm.png'
 
 
 # Use XGBoost classifier with default parameters
@@ -178,8 +195,64 @@ xgb_cm = ff.create_annotated_heatmap(z=cm, x=classes, y=classes, colorscale='YlO
 xgb_cm.update_layout(title='Confusion Matrix', xaxis=dict(title='Predicted label'), yaxis=dict(title='True label', autorange="reversed"))
 #-----------------------------------------------------------------------------------------------#
 
-roc_xgb = 'roc_xgb.png'
-cpe_xgb = 'cpe_xgb.png'
+# Generate classification report----------------------------------------------------------------#
+xgb_cfr = classification_report(y_test, y_pred_xgb, target_names=classes, output_dict=True)
+report_data = []
+for label, metrics in xgb_cfr.items():
+    if label in classes:
+        report_data.append([label, metrics['precision'], metrics['recall'], metrics['f1-score'], metrics['support']])
+report_df = pd.DataFrame(report_data, columns=['Class', 'Precision', 'Recall', 'F1-Score', 'Support'])
+table_trace = go.Table(
+    header=dict(values=report_df.columns.tolist(), fill=dict(color='black'),  # Change header background color to blue
+                font=dict(color='white'),  # Change header font color to white
+                align='center'),
+    cells=dict(values=[report_df['Class'], report_df['Precision'], report_df['Recall'], report_df['F1-Score'], report_df['Support']],
+               fill=dict(color='black'),  # Change cell background color to black
+               font=dict(color='white'),  # Change cell font color to white
+               align='center'))
+fig_xgb_cfr = go.Figure()
+fig_xgb_cfr.add_trace(table_trace)
+fig_xgb_cfr.update_layout(title='Classification Report')
+#-----------------------------------------------------------------------------------------------#
+
+roc_xgb = 'data/roc_xgb.png'
+cpe_xgb = 'data/cpe_xgb.png'
+
+def predict_celestial_object(features):
+    """
+    Prédit la classe d'un objet céleste basée sur ses caractéristiques, qui peuvent être fournies
+    sous forme d'une liste de nombres ou d'une chaîne de caractères séparée par des virgules.
+
+    Parameters:
+    features : array-like ou str, shape (n_features,) ou "n1,n2,...,n_features"
+        Les caractéristiques de l'objet céleste à classifier, soit sous forme d'une liste/array de nombres,
+        soit sous forme d'une chaîne de caractères avec les nombres séparés par des virgules.
+
+    Returns:
+    str
+        Le nom de la classe prédite (GALAXY, STAR, QSO).
+    """
+    # Si les caractéristiques sont fournies sous forme de chaîne, les convertir en liste de nombres flottants
+    if isinstance(features, str):
+        features = [float(n) for n in features.split(',')]
+    
+    # Assurer que les caractéristiques sont dans le bon format pour la prédiction
+    features = np.array(features).reshape(1, -1)
+    
+    # Prédire la classe de l'objet céleste
+    prediction = clf.predict(features)
+    
+    # Récupérer l'index de la classe prédite
+    predicted_class_index = prediction[0]
+    
+    # Retourner le nom de la classe correspondante
+    return classes[predicted_class_index]
+
+# Exemple d'utilisation avec une chaîne de caractères :
+# exemple_features_str = "1.23,2.34,3.45,4.56,5.67"
+# print(predict_celestial_object(exemple_features_str))
+
+
 
 """
    Stellar Classification ML App
@@ -213,22 +286,31 @@ st.write('Random Forest Classifier','Support Vector Machine Classifier (SVM)','X
 st.write('The following metrics have been used to evaluate the classifiers:')
 st.write('Confusion Matrix', 'Classification Report', 'ROC AUC', 'Class Prediction Error')
 st.write('The accuracy of the classifiers is as follows:')
-st.write('Random Forest Classifier', clf_score)
-st.plotly_chart(r_forest_cm)
-st.plotly_chart(fig_r_forest_cfr)
-st.write('##### RoC AUC for Random Forest Classifier')
-st.image(roc_forest)
-st.write('##### Class Prediction Error for Random Forest Classifier')
-st.image(cpe_forest)
-st.write('Support Vector Machine Classifier (SVM)', svm_score_)
-st.plotly_chart(svm_cm)
-st.write('##### RoC AUC for Support Vector Machine Classifier (SVM)')
-st.image(roc_svm)
-st.write('##### Class Prediction Error for Support Vector Machine Classifier (SVM)')
-st.image(cpe_svm)
-st.write('XGBoost Classifier (XGB)', xgb_score)
-st.plotly_chart(xgb_cm)
-st.write('##### RoC AUC for XGBoost Classifier (XGB)')
-st.image(roc_xgb)
-st.write('##### Class Prediction Error for XGBoost Classifier (XGB)')
-st.image(cpe_xgb)
+option = st.selectbox(
+    'choose a classifier:',
+    ('RFC', 'SVM', 'XGB','compare','test'))
+
+if option == 'R_forest':
+    st.write('Random Forest Classifier', clf_score)
+    st.plotly_chart(r_forest_cm)
+    st.plotly_chart(fig_r_forest_cfr)
+    st.write('##### RoC AUC for Random Forest Classifier')
+    st.image(roc_forest)
+    st.write('##### Class Prediction Error for Random Forest Classifier')
+    st.image(cpe_forest)
+elif option == 'SVM':
+    st.write('Support Vector Machine Classifier (SVM)', svm_score_)
+    st.plotly_chart(svm_cm)
+    st.plotly_chart(fig_svm_cfr)
+    st.write('##### RoC AUC for Support Vector Machine Classifier (SVM)')
+    st.image(roc_svm)
+    st.write('##### Class Prediction Error for Support Vector Machine Classifier (SVM)')
+    st.image(cpe_svm)
+elif option == 'XGB':
+    st.write('XGBoost Classifier (XGB)', xgb_score)
+    st.plotly_chart(xgb_cm)
+    st.plotly_chart(fig_xgb_cfr)
+    st.write('##### RoC AUC for XGBoost Classifier (XGB)')
+    st.image(roc_xgb)
+    st.write('##### Class Prediction Error for XGBoost Classifier (XGB)')
+    st.image(cpe_xgb)
