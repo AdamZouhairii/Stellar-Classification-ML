@@ -23,7 +23,7 @@ st.set_page_config(
     page_icon="🌌",
 )
 
-data = r'C:\Users\Adame\Documents\GitHub\Stellar-Classification-ML\star_classification.csv'
+data = 'star_classification.csv'
 intput_test = "23.87882,22.27530,20.39501,19.16573,18.79371,6.543777e+18,0.634794,5812,56354"
 df = pd.read_csv(data)
 head = df.head()
