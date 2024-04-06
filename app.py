@@ -14,7 +14,7 @@ import xgboost as xgb
 import warnings
 import plotly.figure_factory as ff
 import plotly.graph_objs as go
-
+from streamlit_extras.let_it_rain import rain
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -24,6 +24,7 @@ st.set_page_config(
 )
 
 data = r'C:\Users\Adame\Documents\GitHub\Stellar-Classification-ML\star_classification.csv'
+intput_test = "23.87882,22.27530,20.39501,19.16573,18.79371,6.543777e+18,0.634794,5812,56354"
 df = pd.read_csv(data)
 head = df.head()
 describe = df.describe()
@@ -101,10 +102,10 @@ x = scaler.transform(x)
 X_train, X_test, y_train, y_test = train_test_split(x, y, test_size = 0.33, random_state = 42)
 
 # Using Random Forest Classifier
-clf = RandomForestClassifier(n_estimators=100, random_state=42)
-clf.fit(X_train, y_train)
-y_pred = clf.predict(X_test)
-score = clf.score(X_test, y_test)
+RFC_clf = RandomForestClassifier(n_estimators=100, random_state=42)
+RFC_clf.fit(X_train, y_train)
+y_pred = RFC_clf.predict(X_test)
+score = RFC_clf.score(X_test, y_test)
 clf_score = np.mean(score)
 
 classes = ["GALAXY", "STAR", "QSO"]
@@ -219,32 +220,87 @@ roc_xgb = 'data/roc_xgb.png'
 cpe_xgb = 'data/cpe_xgb.png'
 
 
+def predict_celestial_object(features, selct_prediction):
+    # Convert the input to an array of floats
+    if isinstance(features, str):
+        features = np.array([float(n) for n in features.split(',')])
+    elif isinstance(features, list):
+        features = np.array(features)
+    else:
+        raise ValueError("Features must be a comma-separated string or a list of numbers.")
+
+    # Ensure features are in the correct shape for prediction
+    features = features.reshape(1, -1)
+
+    # Standardize the features using the pre-fitted scaler
+    features = scaler.transform(features)
+    if selct_prediction == 0:
+        # Predict the class using the pre-trained classifier
+        predicted_class = RFC_clf.predict(features)
+    elif selct_prediction == 1:
+        predicted_class = svm_clf.predict(features)
+    elif selct_prediction == 2:
+        predicted_class = xgb_clf.predict(features)
+    return classes[predicted_class[0]]
 
 
+def comete_rain():
+    rain(
+        emoji="☄️",
+        font_size=54,
+        falling_speed=5,
+        animation_length="infinite",
+    )
 
-"""
-   Stellar Classification ML App
+st.title('Stellar Classification')
+st.image('data/stellar.jpg')
 
-"""
 
-st.title('Star Classification')
 st.write('This app uses a dataset of stars to classify them into three classes: GALAXY, STAR, QSO')
+
+
+
 st.write('The dataset contains 10000 rows and 18 columns')
+
+
+
 st.code('df.head()', language='python')
 st.dataframe(head)
+
+
+
 st.write('The dataset has the following class for the classification prediction:')
 st.write('GALAXY, STAR, QSO')
 st.pyplot(fig)
+
+st.write('There is more of the GALAXY class in the dataset than the other classes')
+
+st.write('Thats shows that the dataset is imbalanced')
+
 st.write('The dataset has the following percentage distribution of class types')
 st.plotly_chart(pdct)
+
+
+
 st.write('The dataset has the following correlation matrix')
-st.write('The correlation matrix shows the correlation between the different features in the dataset')
 st.pyplot(f)
+
+st.write('The correlation matrix shows the correlation between the different features in the dataset')
+
+st.write('A correlation of 1 means the features are highly correlated')
+st.write('A correlation of 0 means the features are not correlated')
+
 st.write('The dataset has the following information')
-st.write('The dataset has no missing values')
 st.dataframe(missing)
+
+st.write('The dataset has no missing values')
+
+
 st.write('The dataset has the following description')
 st.dataframe(describe)
+
+
+
 st.write('The dataset has been cleaned and outliers have been removed')
 st.write('15256 outliers have been removed')
 st.write('The dataset has been split into training and testing datasets')
@@ -256,7 +312,8 @@ st.write('Confusion Matrix', 'Classification Report', 'ROC AUC', 'Class Predicti
 st.write('The accuracy of the classifiers is as follows:')
 option = st.selectbox(
     'choose a classifier:',
-    ('RFC', 'SVM', 'XGB'))
+    ['RFC', 'SVM', 'XGB'],
+)
 
 if option == 'RFC':
     st.write('Random Forest Classifier', clf_score)
@@ -282,60 +339,23 @@ elif option == 'XGB':
     st.image(roc_xgb)
     st.write('##### Class Prediction Error for XGBoost Classifier (XGB)')
     st.image(cpe_xgb)
+  
+
+
+
 
 st.write('The following features are used for the prediction:')
 st.write('u, g, r, i, z, specobjid, redshift, plate, mjd')
-input_features = st.text_input("23.87882,22.27530,20.39501,19.16573,18.79371,6.543777e+18,0.634794,5812,56354")
-input_features = "23.87882,22.27530,20.39501,19.16573,18.79371,6.543777e+18,0.634794,5812,56354"
-option2 = st.selectbox(
-    'choose a classifier for prediction:',
-    ['RFC', 'SVM', 'XGB'])
+st.write('Data input for the test prediction is as follows:')
+st.write('input_test =GALAXY')
+st.code('input_test = [23.87882,22.27530,20.39501,19.16573,18.79371,6.543777e+18,0.634794,5812,56354]', language='python')
 
-def predict_celestial_object(features):
-    """
-    Prédit la classe d'un objet céleste basée sur ses caractéristiques, qui peuvent être fournies
-    sous forme d'une liste de nombres ou d'une chaîne de caractères séparée par des virgules.
-
-    Parameters:
-    features : array-like ou str, shape (n_features,) ou "n1,n2,...,n_features"
-        Les caractéristiques de l'objet céleste à classifier, soit sous forme d'une liste/array de nombres,
-        soit sous forme d'une chaîne de caractères avec les nombres séparés par des virgules.
-
-    Returns:
-    str
-        Le nom de la classe prédite (GALAXY, STAR, QSO).
-    """
-    # Convert the input to an array of floats
-    if isinstance(features, str):
-        features = np.array([float(n) for n in features.split(',')])
-    elif isinstance(features, list):
-        features = np.array(features)
-    else:
-        raise ValueError("Features must be a comma-separated string or a list of numbers.")
-
-    # Ensure features are in the correct shape for prediction
-    features = features.reshape(1, -1)
-
-    # Standardize the features using the pre-fitted scaler
-    features = scaler.transform(features)
-    if option2 == 0:
-        # Predict the class using the pre-trained classifier
-        predicted_class = clf.predict(features)
-    elif option2 == 1:
-        predicted_class = svm_clf.predict(features)
-    elif option2 == 2:
-        predicted_class = xgb_clf.predict(features)
-
-    if predicted_class[0] == 0:
-        return " it's a GALAXY"
-    elif predicted_class[0] == 1:
-        return "it's a STAR"
-    else:
-        return "it's a QSO"
-
-if option2 == 0:
-        st.write('RFC prediction:',predict_celestial_object(input_features))
-elif option2 == 1:
-        st.write('SVM prediction:',predict_celestial_object(input_features))
-elif option2 == 2:
-        st.write('XGB prediction:',predict_celestial_object(input_features))
+st.write('The following prediction is made for the input test')
+st.write('For prediction if 0 is GALAXY, 1 is STAR, 2 is QSO')
+st.write('The prediction is made using the Random Forest Classifier')
+st.write('The input data is a :',predict_celestial_object(intput_test,0))
+st.write('The prediction is made using the Support Vector Machine Classifier (SVM)')
+st.write('The input data is a :',predict_celestial_object(intput_test,1))
+st.write('The prediction is made using the XGBoost Classifier (XGB)')
+st.write('The input data is a :',predict_celestial_object(intput_test,2))
+st.markdown('[othertest](stellar_classification_ML.ipynb)')
