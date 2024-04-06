@@ -218,39 +218,7 @@ fig_xgb_cfr.update_layout(title='Classification Report')
 roc_xgb = 'data/roc_xgb.png'
 cpe_xgb = 'data/cpe_xgb.png'
 
-def predict_celestial_object(features):
-    """
-    Prédit la classe d'un objet céleste basée sur ses caractéristiques, qui peuvent être fournies
-    sous forme d'une liste de nombres ou d'une chaîne de caractères séparée par des virgules.
 
-    Parameters:
-    features : array-like ou str, shape (n_features,) ou "n1,n2,...,n_features"
-        Les caractéristiques de l'objet céleste à classifier, soit sous forme d'une liste/array de nombres,
-        soit sous forme d'une chaîne de caractères avec les nombres séparés par des virgules.
-
-    Returns:
-    str
-        Le nom de la classe prédite (GALAXY, STAR, QSO).
-    """
-    # Si les caractéristiques sont fournies sous forme de chaîne, les convertir en liste de nombres flottants
-    if isinstance(features, str):
-        features = [float(n) for n in features.split(',')]
-    
-    # Assurer que les caractéristiques sont dans le bon format pour la prédiction
-    features = np.array(features).reshape(1, -1)
-    
-    # Prédire la classe de l'objet céleste
-    prediction = clf.predict(features)
-    
-    # Récupérer l'index de la classe prédite
-    predicted_class_index = prediction[0]
-    
-    # Retourner le nom de la classe correspondante
-    return classes[predicted_class_index]
-
-# Exemple d'utilisation avec une chaîne de caractères :
-# exemple_features_str = "1.23,2.34,3.45,4.56,5.67"
-# print(predict_celestial_object(exemple_features_str))
 
 
 
@@ -288,9 +256,9 @@ st.write('Confusion Matrix', 'Classification Report', 'ROC AUC', 'Class Predicti
 st.write('The accuracy of the classifiers is as follows:')
 option = st.selectbox(
     'choose a classifier:',
-    ('RFC', 'SVM', 'XGB','compare','test'))
+    ('RFC', 'SVM', 'XGB'))
 
-if option == 'R_forest':
+if option == 'RFC':
     st.write('Random Forest Classifier', clf_score)
     st.plotly_chart(r_forest_cm)
     st.plotly_chart(fig_r_forest_cfr)
@@ -314,3 +282,60 @@ elif option == 'XGB':
     st.image(roc_xgb)
     st.write('##### Class Prediction Error for XGBoost Classifier (XGB)')
     st.image(cpe_xgb)
+
+st.write('The following features are used for the prediction:')
+st.write('u, g, r, i, z, specobjid, redshift, plate, mjd')
+input_features = st.text_input("23.87882,22.27530,20.39501,19.16573,18.79371,6.543777e+18,0.634794,5812,56354")
+input_features = "23.87882,22.27530,20.39501,19.16573,18.79371,6.543777e+18,0.634794,5812,56354"
+option2 = st.selectbox(
+    'choose a classifier for prediction:',
+    ['RFC', 'SVM', 'XGB'])
+
+def predict_celestial_object(features):
+    """
+    Prédit la classe d'un objet céleste basée sur ses caractéristiques, qui peuvent être fournies
+    sous forme d'une liste de nombres ou d'une chaîne de caractères séparée par des virgules.
+
+    Parameters:
+    features : array-like ou str, shape (n_features,) ou "n1,n2,...,n_features"
+        Les caractéristiques de l'objet céleste à classifier, soit sous forme d'une liste/array de nombres,
+        soit sous forme d'une chaîne de caractères avec les nombres séparés par des virgules.
+
+    Returns:
+    str
+        Le nom de la classe prédite (GALAXY, STAR, QSO).
+    """
+    # Convert the input to an array of floats
+    if isinstance(features, str):
+        features = np.array([float(n) for n in features.split(',')])
+    elif isinstance(features, list):
+        features = np.array(features)
+    else:
+        raise ValueError("Features must be a comma-separated string or a list of numbers.")
+
+    # Ensure features are in the correct shape for prediction
+    features = features.reshape(1, -1)
+
+    # Standardize the features using the pre-fitted scaler
+    features = scaler.transform(features)
+    if option2 == 0:
+        # Predict the class using the pre-trained classifier
+        predicted_class = clf.predict(features)
+    elif option2 == 1:
+        predicted_class = svm_clf.predict(features)
+    elif option2 == 2:
+        predicted_class = xgb_clf.predict(features)
+
+    if predicted_class[0] == 0:
+        return " it's a GALAXY"
+    elif predicted_class[0] == 1:
+        return "it's a STAR"
+    else:
+        return "it's a QSO"
+
+if option2 == 0:
+        st.write('RFC prediction:',predict_celestial_object(input_features))
+elif option2 == 1:
+        st.write('SVM prediction:',predict_celestial_object(input_features))
+elif option2 == 2:
+        st.write('XGB prediction:',predict_celestial_object(input_features))
