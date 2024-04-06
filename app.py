@@ -241,7 +241,7 @@ def predict_celestial_object(features, selct_prediction):
         predicted_class = svm_clf.predict(features)
     elif selct_prediction == 2:
         predicted_class = xgb_clf.predict(features)
-    return classes[predicted_class[0]]
+    return predicted_class[0]
 
 
 def comete_rain():
@@ -358,4 +358,3 @@ st.write('The prediction is made using the Support Vector Machine Classifier (SV
 st.write('The input data is a :',predict_celestial_object(intput_test,1))
 st.write('The prediction is made using the XGBoost Classifier (XGB)')
 st.write('The input data is a :',predict_celestial_object(intput_test,2))
-st.markdown('[othertest](stellar_classification_ML.ipynb)')
