@@ -4,6 +4,8 @@
 
 This project aims to classify stellar objects into three categories: galaxies, stars, and quasars (QSO). To achieve this, we apply three different machine learning models: Random Forest, Support Vector Machine (SVM), and XGBoost. These models were chosen for their effectiveness in handling complex datasets with high accuracy.
 
+### web site
+you can see the project on the web [here](https://stellar-classification-ml.streamlit.app/)
 ## Data
 
 The [dataset](https://www.kaggle.com/datasets/fedesoriano/stellar-classification-dataset-sdss17) used in this project contains various features of stellar objects that are crucial for their classification. The features include but are not limited to, spectral data, magnitudes, and distances.
