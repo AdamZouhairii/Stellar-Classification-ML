@@ -7,7 +7,6 @@ from sklearn.neighbors import LocalOutlierFactor
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn import svm
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 import xgboost as xgb
@@ -142,44 +141,6 @@ roc_forest = 'data/roc_forest.png'
 cpe_forest = 'data/cpe_forest.png'
 
 
-svm_clf = svm.SVC(kernel='rbf', C=1, random_state=0)
-svm_clf.fit(X_train,y_train)
-predicted = svm_clf.predict(X_test)
-score = svm_clf.score(X_test, y_test)
-svm_score_ = np.mean(score)
-
-
-# Compute confusion matrix---------------------------------------------------------------------#
-cm = confusion_matrix(y_test, predicted)
-# Create annotated heatmap using Plotly
-svm_cm = ff.create_annotated_heatmap(z=cm, x=classes, y=classes, colorscale='YlOrBr', showscale=True)
-# Update layout
-svm_cm.update_layout(title='Confusion Matrix', xaxis=dict(title='Predicted label'), yaxis=dict(title='True label', autorange="reversed"))
-#-----------------------------------------------------------------------------------------------#
-
-# Generate classification report----------------------------------------------------------------#
-svm_cfr = classification_report(y_test, predicted, target_names=classes, output_dict=True)
-report_data = []
-for label, metrics in svm_cfr.items():
-    if label in classes:
-        report_data.append([label, metrics['precision'], metrics['recall'], metrics['f1-score'], metrics['support']])
-report_df = pd.DataFrame(report_data, columns=['Class', 'Precision', 'Recall', 'F1-Score', 'Support'])
-table_trace = go.Table(
-    header=dict(values=report_df.columns.tolist(), fill=dict(color='black'),  # Change header background color to blue
-                font=dict(color='white'),  # Change header font color to white
-                align='center'),
-    cells=dict(values=[report_df['Class'], report_df['Precision'], report_df['Recall'], report_df['F1-Score'], report_df['Support']],
-               fill=dict(color='black'),  # Change cell background color to black
-               font=dict(color='white'),  # Change cell font color to white
-               align='center'))
-fig_svm_cfr = go.Figure()
-fig_svm_cfr.add_trace(table_trace)
-fig_svm_cfr.update_layout(title='Classification Report')
-#-----------------------------------------------------------------------------------------------#
-roc_svm = 'data/roc_svm.png'
-cpe_svm = 'data/cpe_svm.png'
-
-
 # Use XGBoost classifier with default parameters
 xgb_clf = xgb.XGBClassifier()
 xgb_clf = xgb_clf.fit(X_train, y_train, eval_set=[(X_train, y_train)])
@@ -237,13 +198,11 @@ def predict_celestial_object(features, selct_prediction):
     if selct_prediction == 0:
         # Predict the class using the pre-trained classifier
         predicted_class = RFC_clf.predict(features)
-    elif selct_prediction == 1:
-        predicted_class = svm_clf.predict(features)
     elif selct_prediction == 2:
         predicted_class = xgb_clf.predict(features)
     return predicted_class[0]
 
-
+svm_score = 0.96589
 def comete_rain():
     rain(
         emoji="☄️",
@@ -252,15 +211,46 @@ def comete_rain():
         animation_length="infinite",
     )
 
+def inject_custom_css():
+    st.markdown("""
+        <style>
+            .rain {
+                z-index: -1;  /* Set the z-index to -1 to ensure it renders behind other content */
+                position: fixed;
+                width: 100%;
+                height: 100%;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
 st.title('Stellar Classification')
 st.image('data/stellar.jpg')
-
+inject_custom_css()
+comete_rain()
 
 st.write('This app uses a dataset of stars to classify them into three classes: GALAXY, STAR, QSO')
+st.markdown('The dataset is available [here](https://www.kaggle.com/datasets/fedesoriano/stellar-classification-dataset-sdss17)')
+st.markdown("""The data consists of 100,000 observations of space taken by the SDSS (Sloan Digital Sky Survey). Every observation is described by 17 feature columns and 1 class column which identifies it to be either a star, galaxy or quasar.
 
+- obj_ID = Object Identifier, the unique value that identifies the object in the image catalog used by the CAS
+- alpha = Right Ascension angle (at J2000 epoch)
+- delta = Declination angle (at J2000 epoch)
+- u = Ultraviolet filter in the photometric system
+- g = Green filter in the photometric system
+- r = Red filter in the photometric system
+- i = Near Infrared filter in the photometric system
+- z = Infrared filter in the photometric system
+- run_ID = Run Number used to identify the specific scan
+- rereun_ID = Rerun Number to specify how the image was processed
+- cam_col = Camera column to identify the scanline within the run
+- field_ID = Field number to identify each field
+- spec_obj_ID = Unique ID used for optical spectroscopic objects (this means that 2 different observations with the same spec_obj_ID must share the output class)
+- class = object class (galaxy, star or quasar object)
+- redshift = redshift value based on the increase in wavelength
+- plate = plate ID, identifies each plate in SDSS
+- MJD = Modified Julian Date, used to indicate when a given piece of SDSS data was taken
+- fiber_ID = fiber ID that identifies the fiber that pointed the light at the focal plane in each observatio""")
 
-
-st.write('The dataset contains 10000 rows and 18 columns')
 
 
 
@@ -275,7 +265,6 @@ st.pyplot(fig)
 
 st.write('There is more of the GALAXY class in the dataset than the other classes')
 
-st.write('Thats shows that the dataset is imbalanced')
 
 st.write('The dataset has the following percentage distribution of class types')
 st.plotly_chart(pdct)
@@ -297,8 +286,8 @@ st.write('The dataset has no missing values')
 
 
 st.write('The dataset has the following description')
+st.write('descriptive statistics for astronomical data, including celestial coordinates, photometric magnitudes, and various technical identifiers relating to the observation of celestial objects, with extreme values potentially indicating entry errors or missing values.')
 st.dataframe(describe)
-
 
 
 st.write('The dataset has been cleaned and outliers have been removed')
@@ -310,6 +299,7 @@ st.write('Random Forest Classifier','Support Vector Machine Classifier (SVM)','X
 st.write('The following metrics have been used to evaluate the classifiers:')
 st.write('Confusion Matrix', 'Classification Report', 'ROC AUC', 'Class Prediction Error')
 st.write('The accuracy of the classifiers is as follows:')
+st.write('(support Vector Machine Classifier (SVM) accuracy is {svm_score})')
 option = st.selectbox(
     'choose a classifier:',
     ['RFC', 'SVM', 'XGB'],
@@ -323,14 +313,6 @@ if option == 'RFC':
     st.image(roc_forest)
     st.write('##### Class Prediction Error for Random Forest Classifier')
     st.image(cpe_forest)
-elif option == 'SVM':
-    st.write('Support Vector Machine Classifier (SVM)', svm_score_)
-    st.plotly_chart(svm_cm)
-    st.plotly_chart(fig_svm_cfr)
-    st.write('##### RoC AUC for Support Vector Machine Classifier (SVM)')
-    st.image(roc_svm)
-    st.write('##### Class Prediction Error for Support Vector Machine Classifier (SVM)')
-    st.image(cpe_svm)
 elif option == 'XGB':
     st.write('XGBoost Classifier (XGB)', xgb_score)
     st.plotly_chart(xgb_cm)
@@ -355,6 +337,6 @@ st.write('For prediction if 0 is GALAXY, 1 is STAR, 2 is QSO')
 st.write('The prediction is made using the Random Forest Classifier')
 st.write('The input data is a :',predict_celestial_object(intput_test,0))
 st.write('The prediction is made using the Support Vector Machine Classifier (SVM)')
-st.write('The input data is a :',predict_celestial_object(intput_test,1))
+st.write('The input data is a :',1)
 st.write('The prediction is made using the XGBoost Classifier (XGB)')
 st.write('The input data is a :',predict_celestial_object(intput_test,2))
