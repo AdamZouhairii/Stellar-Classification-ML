@@ -14,6 +14,7 @@ import warnings
 import plotly.figure_factory as ff
 import plotly.graph_objs as go
 from streamlit_extras.let_it_rain import rain
+import time
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -211,22 +212,9 @@ def comete_rain():
         animation_length="infinite",
     )
 
-def inject_custom_css():
-    st.markdown("""
-        <style>
-            .rain {
-                z-index: -1;  /* Set the z-index to -1 to ensure it renders behind other content */
-                position: fixed;
-                width: 100%;
-                height: 100%;
-            }
-        </style>
-    """, unsafe_allow_html=True)
 
 st.title('Stellar Classification')
 st.image('data/stellar.jpg')
-inject_custom_css()
-comete_rain()
 
 st.write('This app uses a dataset of stars to classify them into three classes: GALAXY, STAR, QSO')
 st.markdown('The dataset is available [here](https://www.kaggle.com/datasets/fedesoriano/stellar-classification-dataset-sdss17)')
@@ -299,7 +287,7 @@ st.write('Random Forest Classifier','Support Vector Machine Classifier (SVM)','X
 st.write('The following metrics have been used to evaluate the classifiers:')
 st.write('Confusion Matrix', 'Classification Report', 'ROC AUC', 'Class Prediction Error')
 st.write('The accuracy of the classifiers is as follows:')
-st.write('(support Vector Machine Classifier (SVM) accuracy is {svm_score})')
+st.write('(support Vector Machine Classifier (SVM) accuracy is',svm_score,')')
 option = st.selectbox(
     'choose a classifier:',
     ['RFC', 'SVM', 'XGB'],
@@ -340,3 +328,5 @@ st.write('The prediction is made using the Support Vector Machine Classifier (SV
 st.write('The input data is a :',1)
 st.write('The prediction is made using the XGBoost Classifier (XGB)')
 st.write('The input data is a :',predict_celestial_object(intput_test,2))
+if st.button('Comete Rain'):
+    comete_rain()
